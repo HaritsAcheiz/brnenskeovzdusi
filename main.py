@@ -1,6 +1,7 @@
 import httpx
 from selectolax.parser import HTMLParser
 import pandas as pd
+import time
 
 def make_request(url):
     with httpx.Client() as client:
@@ -54,7 +55,7 @@ def main():
             'https://www.brnenskeovzdusi.cz/brno-turany/']
     [get_data(url) for url in urls]
 
-
-
 if __name__ == '__main__':
+    start = time.perf_counter()
     main()
+    print(f'processing_time: {str(time.perf_counter()-start)}')
