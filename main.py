@@ -8,13 +8,6 @@ def make_request(url):
         response = client.get(url)
     return response
 
-def checker(x):
-    if x != None:
-        result = x.text()
-    else:
-        result = None
-    return result
-
 def parse_air_quality(response):
     html = HTMLParser(response.text)
     try:
