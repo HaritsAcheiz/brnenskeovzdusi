@@ -1,31 +1,6 @@
 import httpx
-import asyncio
 from selectolax.parser import HTMLParser
-from dataclasses import dataclass, asdict
-
-urls = ['https://www.brnenskeovzdusi.cz/brno-detska-nemocnice/',
-        'https://www.brnenskeovzdusi.cz/brno-arboretum/',
-        'https://www.brnenskeovzdusi.cz/brno-lany/',
-        'https://www.brnenskeovzdusi.cz/brno-svatoplukova/',
-        'https://www.brnenskeovzdusi.cz/brno-vystaviste/',
-        'https://www.brnenskeovzdusi.cz/brno-masna/',
-        'https://www.brnenskeovzdusi.cz/brno-lisen/',
-        'https://www.brnenskeovzdusi.cz/brno-uvoz/',
-        'https://www.brnenskeovzdusi.cz/brno-turany/']
-
-# @dataclass
-# class AirQuality:
-#     station: str
-#     datetime: str
-#     SO2_1h: float
-#     SO2_24h: float
-#     NO2_1h: float
-#     O3_1h: float
-#     O3_8h: float
-#     PM10_1h: float
-#     PM10_24h: float
-#     PM25_1h: float
-#     CO_8h: float
+import pandas as pd
 
 def make_request(url):
     with httpx.Client() as client:
@@ -41,10 +16,13 @@ def checker(x):
     return result
 
 def parse_air_quality(html):
-    station = html.css_first('div.box-detail__heading__inner > h1:nth-child(2) > strong:nth-child(1)').text()
+    try:
+        station = html.css_first('div.box-detail__heading__inner > h1 > strong').text()
+    except AttributeError:
+        station = html.css_first('div.grid-3:nth-child(2) > h1 > strong').text()
     items = html.css('div.respons-table:nth-child(2) > table:nth-child(1) > tbody:nth-child(1) > tr')
     headers = []
-    datas = []
+    datas = {'station': station, 'air_quality':list()}
     for index, item in enumerate(items):
         if index == 0:
            header_objects = item.css('th')
@@ -54,10 +32,30 @@ def parse_air_quality(html):
             new_item = dict()
             for i,header in enumerate(headers,1):
                 new_item[f'{header}'] = item.css_first(f'td:nth-child({i})').text()
-                datas.append(new_item)
+                datas['air_quality'].append(new_item)
     return datas
 
-if __name__ == '__main__':
-    html = make_request(urls[0])
+def get_data(url):
+    print(f'getting data from {url}')
+    html = make_request(url)
+    print(html.html)
     result = parse_air_quality(html)
-    print(result)
+    datas = pd.DataFrame(result['air_quality'])
+    datas.to_csv(f"{result['station']} {datas.iloc[-1][0].split(':')[0]}.csv")
+
+def main():
+    urls = ['https://www.brnenskeovzdusi.cz/brno-detska-nemocnice/',
+            'https://www.brnenskeovzdusi.cz/brno-svatoplukova/',
+            'https://www.brnenskeovzdusi.cz/brno-lany/',
+            'https://www.brnenskeovzdusi.cz/brno-arboretum/',
+            'https://www.brnenskeovzdusi.cz/brno-vystaviste/',
+            'https://www.brnenskeovzdusi.cz/brno-masna/',
+            'https://www.brnenskeovzdusi.cz/brno-lisen/',
+            'https://www.brnenskeovzdusi.cz/brno-uvoz/',
+            'https://www.brnenskeovzdusi.cz/brno-turany/']
+    [get_data(url) for url in urls]
+
+
+
+if __name__ == '__main__':
+    main()
