@@ -6,8 +6,7 @@ import time
 def make_request(url):
     with httpx.Client() as client:
         response = client.get(url)
-        html = HTMLParser(response.text)
-    return html
+    return response
 
 def checker(x):
     if x != None:
@@ -16,7 +15,8 @@ def checker(x):
         result = None
     return result
 
-def parse_air_quality(html):
+def parse_air_quality(response):
+    html = HTMLParser(response.text)
     try:
         station = html.css_first('div.box-detail__heading__inner > h1 > strong').text()
     except AttributeError:
@@ -58,4 +58,4 @@ def main():
 if __name__ == '__main__':
     start = time.perf_counter()
     main()
-    print(f'processing_time: {str(time.perf_counter()-start)}')
+    print(f'processing_time: {str(time.perf_counter()-start)} second(s)')
