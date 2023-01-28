@@ -38,7 +38,6 @@ def parse_air_quality(html):
 def get_data(url):
     print(f'getting data from {url}')
     html = make_request(url)
-    print(html.html)
     result = parse_air_quality(html)
     datas = pd.DataFrame(result['air_quality'])
     datas.to_csv(f"{result['station']} {datas.iloc[-1][0].split(':')[0]}.csv")
