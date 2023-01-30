@@ -2,6 +2,7 @@ import httpx
 from selectolax.parser import HTMLParser
 import pandas as pd
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 def get_page(url):
     with httpx.Client() as client:
@@ -47,7 +48,8 @@ def main():
             'https://www.brnenskeovzdusi.cz/brno-lisen/',
             'https://www.brnenskeovzdusi.cz/brno-uvoz/',
             'https://www.brnenskeovzdusi.cz/brno-turany/']
-    [get_data(url) for url in urls]
+    with ThreadPoolExecutor() as executor:
+        executor.map(get_data, urls)
 
 if __name__ == '__main__':
     start = time.perf_counter()
